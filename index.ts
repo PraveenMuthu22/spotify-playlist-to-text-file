@@ -1,5 +1,6 @@
 import SpotifyWebApi from 'spotify-web-api-node';
 import * as fs from 'fs';
+import * as path from 'path';
 import readlineSync from 'readline-sync';
 import open from 'open';
 import { clientId, clientSecret } from './credentials';
@@ -45,9 +46,37 @@ function saveTracksToFile(tracks: Track[], filename: string): void {
     return `${index + 1}. ${track.name} - ${artists}`;
   }).join('\n');
 
-  fs.writeFileSync(filename, content, 'utf-8');
+  const playlistsDir = path.join(process.cwd(), 'playlists');
+  if (!fs.existsSync(playlistsDir)) {
+    fs.mkdirSync(playlistsDir);
+  }
+
+  // Ensure the filename has a .txt extension
+  const fileNameWithExtension = filename.endsWith('.txt') ? filename : `${filename}.txt`;
+  const filePath = path.join(playlistsDir, fileNameWithExtension);
+  fs.writeFileSync(filePath, content, 'utf-8');
 }
 
+async function processPlaylist() {
+  const playlistId = readlineSync.question("Please enter your Spotify playlist ID (or type 'exit' to quit): ");
+  
+  if (playlistId.toLowerCase() === 'exit') {
+    return false;
+  }
+
+  let outputFile = readlineSync.question("Please enter the output file name (e.g., pop_art): ");
+
+  console.log("\nProcessing your request...");
+  try {
+    const tracks = await getPlaylistTracks(playlistId);
+    saveTracksToFile(tracks, outputFile);
+    console.log(`Playlist saved to ./playlists/${outputFile}.txt`);
+  } catch (error) {
+    console.error('An error occurred while processing the playlist:', error);
+  }
+
+  return true;
+}
 async function authenticateUser(): Promise<void> {
   const authorizeURL = spotifyApi.createAuthorizeURL(scopes, 'state');
   
@@ -67,14 +96,18 @@ async function main() {
   try {
     await authenticateUser();
 
-    console.log("\n--- Playlist Information ---");
-    const playlistId = readlineSync.question("Please enter your Spotify playlist ID: ");
-    const outputFile = readlineSync.question("Please enter the output file name (e.g., playlist.txt): ");
+    console.log("\n--- Spotify Playlist Downloader ---");
+    
+    let continueProcessing = true;
+    while (continueProcessing) {
+      continueProcessing = await processPlaylist();
+      
+      if (continueProcessing) {
+        console.log("\n--- Ready for next playlist ---");
+      }
+    }
 
-    console.log("\nProcessing your request...");
-    const tracks = await getPlaylistTracks(playlistId);
-    saveTracksToFile(tracks, outputFile);
-    console.log(`Playlist saved to ${outputFile}`);
+    console.log("Thank you for using the Spotify Playlist Downloader. Goodbye!");
   } catch (error) {
     console.error('An error occurred:', error);
   }
