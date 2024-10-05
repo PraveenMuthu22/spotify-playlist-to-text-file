@@ -1,0 +1,21 @@
+{
+  "name": "spotify-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "npm start": "npx tsx index.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/readline-sync": "^1.4.8",
+    "open": "^10.1.0",
+    "readline-sync": "^1.4.10",
+    "spotify-web-api-node": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4"
+  }
+}

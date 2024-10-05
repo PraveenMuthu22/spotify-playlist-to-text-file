@@ -1,0 +1,8 @@
+# Dependency directories
+node_modules/
+
+# Credentials file
+credentials.ts
+
+# All files with .tsx extension
+*.txt
